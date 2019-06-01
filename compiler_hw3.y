@@ -1,6 +1,9 @@
 /*	Definition section */
 %{
-#include "xxxx.h" // include header if needed
+//#include "xxxx.h" // include header if needed
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 extern int yylineno;
 extern int yylex();
