@@ -439,7 +439,7 @@ para
 		{
 			insert_symbol($2, "parameter", $1, curr_scope+1, temp);
 		}
-		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
+		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope+1)
 		{
 			insert_symbol($2, "parameter", $1, curr_scope+1, temp);
 		}
@@ -495,6 +495,7 @@ number_initializer
 				
 			} 
 		}
+	| function_using
 ;
 
 tf_initializer
@@ -514,6 +515,7 @@ tf_initializer
 				
 			} 
 		}
+	| function_using
 ;
 
 count_expr  //need to complete it !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -571,10 +573,10 @@ two_term_op_logic
 	| OR
 ;
 
-one_term_op
+/*one_term_op
 	: pre_one_term_op
 	| both_one_term_op
-;
+;*/
 
 pre_one_term_op
 	: NOT
@@ -586,7 +588,7 @@ both_one_term_op
 ;
 
 function_define
-	: type ID para_area combound_area { 
+	: type ID para_area function_combound { 
 		char temp[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "def"};
 		for(int i=0; i<30; i++)
 		{
@@ -615,6 +617,11 @@ function_define
 			error_target = strdup($2);
 		}
 	}
+;
+
+function_combound
+	: combound_area
+	| new_line function_combound
 ;
 
 combound_area
@@ -805,8 +812,13 @@ paras_using
 ;
 
 select_stat
-	: IF LB logic_initializer RB stat ELSE stat
+	: IF LB logic_initializer RB stat else_stat
 	| IF LB logic_initializer RB stat
+;
+
+else_stat
+	: ELSE stat
+	| new_line else_stat
 ;
 
 while_stat
@@ -924,11 +936,11 @@ void create_symbol() {
 	}
 }
 void insert_symbol(char name[32], char entry_type[32], char data_type[16], int scope_level, char formal_para[16][16]) {
-	if(lookup_symbol(name) != -1)
+	if(lookup_symbol(name) != -1 && scope_level == symbol_table[lookup_symbol(name)].scope_level)
 	{
 		//semantic error.
 	}
-	else if(lookup_symbol(name) == -1)
+	else
 	{
 		strcpy(symbol_table[table_pointer].name, name);
 		strcpy(symbol_table[table_pointer].entry_type, entry_type);
@@ -938,10 +950,6 @@ void insert_symbol(char name[32], char entry_type[32], char data_type[16], int s
 			strcpy(symbol_table[table_pointer].formal_para[i], formal_para[i]);
 		
 		if(table_pointer != 29) table_pointer++;
-	}
-	else
-	{
-		//unknown error, here is imposible in general.
 	}
 }
 int lookup_symbol(char name[32]) {
