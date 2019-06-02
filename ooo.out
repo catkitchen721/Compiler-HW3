@@ -1,0 +1,20 @@
+1: void main(){
+2: 	int a = 20;
+3:     if (a == 40){
+4:         print("a is equal to 40");
+5:     }
+6:     else
+
+|-----------------------------------------------|
+| Error found in line 6:     else
+| syntax error
+|-----------------------------------------------|
+
+
+Index     Name      Kind        Type      Scope     Attribute 
+
+0         a         variable    int       1         
+
+-e 
+[1;33mmain.class output[0m
+Generated: compiler_hw3.class

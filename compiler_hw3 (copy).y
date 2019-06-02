@@ -631,11 +631,10 @@ stat
 	| var_decl
 	| print_stat SEMICOLON
 	| function_using SEMICOLON
-	| select_stat  
+	| if_stat
 	| while_stat
 	| return_stat SEMICOLON
 	| SEMICOLON
-	| combound_area
 	| new_line
 ;
 
@@ -774,7 +773,6 @@ print_target
 			} 
 		}
 	| STR_CONST
-	| number_initializer
 ;
 
 function_using
@@ -804,13 +802,31 @@ paras_using
 	| initializer
 ;
 
-select_stat
-	: IF LB logic_initializer RB stat ELSE stat
+if_stat
+	: single_if_stat else_if_stats else_stat
+	| single_if_stat else_if_stats
+	| single_if_stat else_stat
+	| single_if_stat
+;
+
+single_if_stat
+	: IF LB logic_initializer RB combound_area
 	| IF LB logic_initializer RB stat
 ;
 
+else_if_stats 
+	: else_if_stats ELSE single_if_stat
+	| ELSE single_if_stat
+;
+
+else_stat
+	: ELSE combound_area
+	| ELSE stat
+;
+
 while_stat
-	: WHILE LB logic_initializer RB stat
+	: WHILE LB logic_initializer RB combound_area
+	| WHILE LB logic_initializer RB stat
 ;
 
 return_stat
@@ -841,11 +857,8 @@ int main(int argc, char** argv)
 					".limit locals 50\n");
 
     result = yyparse();
-	if(result == 0) 
-	{
-		dump_symbol();
-		printf("\nTotal lines: %d \n",yylineno);
-	}
+    dump_symbol();
+	if(result == 0) printf("\nTotal lines: %d \n",yylineno);
 	
 	if(symbol_table != NULL)
 	{
