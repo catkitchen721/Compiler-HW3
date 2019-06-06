@@ -4,18 +4,17 @@ int a = 0;
 int b = 0;
 bool isStart = false;
 
-int add(int a, int b)
+void add(int a, int b)
 {
 	int c = 0;
 	c = a + b;
-	return c;
+	return;
 }
 
-int main()
+void main()
 {
 	add(a, b);
 	isStart = true;
 	print("Yes");
-
-	return 0;
+	return;
 }

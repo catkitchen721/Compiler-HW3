@@ -27,6 +27,7 @@ extern int curr_scope;
 char curr_formal_para[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0"};
 int curr_formal_para_index = 0;
 int dump_on = -1;
+int isGlobal = 1;
 
 FILE *file; // To generate .j file for Jasmin
 
@@ -47,7 +48,7 @@ void dump_symbol();
 void free_symbol_table();
 
 /* code generation functions, just an example! */
-void gencode_function();
+void gencode_function(char *cmd);
 
 %}
 
@@ -158,10 +159,30 @@ var_decl
     		if(targetIndex == -1)
     		{
     			insert_symbol($2, "variable", "int", curr_scope, temp);
+    			if(isGlobal)
+    			{
+					gencode_function(".field public static ");
+					gencode_function($2); 
+					gencode_function(" I = 0\n");
+				}
+				else
+				{
+					
+				}
     		}
     		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
     		{
     			insert_symbol($2, "variable", "int", curr_scope, temp);
+    			if(isGlobal)
+    			{
+					gencode_function(".field public static ");
+					gencode_function($2); 
+					gencode_function(" I = 0\n");
+				}
+				else
+				{
+					
+				}
     		}
     		else
     		{
@@ -588,7 +609,14 @@ both_one_term_op
 ;
 
 function_define
-	: type ID para_area function_combound { 
+	: function_define_head function_combound { 
+		fprintf(file, ".end method\n");
+		isGlobal = 1;
+	}
+;
+
+function_define_head
+	: type ID para_area {
 		char temp[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "def"};
 		for(int i=0; i<30; i++)
 		{
@@ -600,15 +628,33 @@ function_define
 		int targetIndex = lookup_symbol($2);
 		if(targetIndex == -1)
 		{
-			insert_symbol($2, "function", $1, curr_scope-1, temp);
+			insert_symbol($2, "function", $1, curr_scope, temp);
+			gencode_function(".method public static ");
+			gencode_function($2);
+			gencode_function("([Ljava/lang/String;)V\n");
+    		gencode_function(".limit stack 50\n");
+    		gencode_function(".limit locals 50\n");
+    		isGlobal = 0;
 		}
 		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
 		{
-			insert_symbol($2, "function", $1, curr_scope-1, temp);
+			insert_symbol($2, "function", $1, curr_scope, temp);
+			gencode_function(".method public static ");
+			gencode_function($2);
+			gencode_function("([Ljava/lang/String;)V\n");
+    		gencode_function(".limit stack 50\n");
+    		gencode_function(".limit locals 50\n");
+    		isGlobal = 0;
 		}
 		else if(targetIndex != -1 && strcmp(symbol_table[targetIndex].formal_para[15], "decl") == 0)
 		{
-			insert_symbol($2, "function", $1, curr_scope-1, temp);
+			insert_symbol($2, "function", $1, curr_scope, temp);
+			gencode_function(".method public static ");
+			gencode_function($2);
+			gencode_function("([Ljava/lang/String;)V\n");
+    		gencode_function(".limit stack 50\n");
+    		gencode_function(".limit locals 50\n");
+    		isGlobal = 0;
 		}
 		else
 		{
@@ -827,7 +873,7 @@ while_stat
 
 return_stat
 	: RET initializer
-	| RET
+	| RET { gencode_function("\treturn\n"); }
 ;
 
 %%
@@ -847,10 +893,7 @@ int main(int argc, char** argv)
     file = fopen("compiler_hw3.j","w");
 
     fprintf(file,   ".class public compiler_hw3\n"
-                    ".super java/lang/Object\n"
-                    ".method public static main([Ljava/lang/String;)V\n"
-                    ".limit stack 50\n"
-					".limit locals 50\n");
+                    ".super java/lang/Object\n");
 
     result = yyparse();
 	if(result == 0) 
@@ -863,9 +906,6 @@ int main(int argc, char** argv)
 	{
 		free(symbol_table);
 	}
-
-    fprintf(file, "\treturn\n"
-                  ".end method\n");
 
     fclose(file);
 
@@ -1029,4 +1069,7 @@ void dump_symbol() {
 }
 
 /* code generation functions */
-void gencode_function() {}
+void gencode_function(char *cmd) 
+{
+	fprintf(file, "%s", cmd);
+}
