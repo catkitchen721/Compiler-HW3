@@ -79,7 +79,8 @@ void gencode_function(char *cmd);
 %token <string> STR_CONST ID
 
 /* Nonterminal with return, which need to sepcify type */
-%type <string> type
+%type <string> type function_using
+%type <string> initializer logic_initializer number_initializer tf_initializer global_initializer
 
 /* Yacc will start at this nonterminal */
 %start program
@@ -146,12 +147,157 @@ new_line
 ;
 
 global_decl
-    : var_decl
+    : var_decl_global
     | function_decl
 ;
 
-var_decl
-    : type ID ASGN initializer SEMICOLON {
+var_decl_global
+	: type ID ASGN global_initializer SEMICOLON {
+    	if(strcmp($1, "int") == 0)
+    	{
+    		char temp[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0"};
+    		int targetIndex = lookup_symbol($2);
+    		if(targetIndex == -1)
+    		{
+    			insert_symbol($2, "variable", "int", curr_scope, temp);
+    			if(isGlobal)
+    			{
+					gencode_function(".field public static ");
+					gencode_function($2); 
+					gencode_function(" I = ");
+					gencode_function($4);
+					gencode_function("\n");
+				}
+    		}
+    		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
+    		{
+    			insert_symbol($2, "variable", "int", curr_scope, temp);
+    			if(isGlobal)
+    			{
+					gencode_function(".field public static ");
+					gencode_function($2); 
+					gencode_function(" I = ");
+					gencode_function($4);
+					gencode_function("\n");
+				}
+    		}
+    		else
+    		{
+    			// semantic error
+				error_type = strdup("Redeclared variable");
+				error_target = strdup($2);
+    		}
+    	}
+    	else if(strcmp($1, "float") == 0)
+    	{
+    		char temp[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0"};
+    		int targetIndex = lookup_symbol($2);
+    		if(targetIndex == -1)
+    		{
+    			insert_symbol($2, "variable", "float", curr_scope, temp);
+    			if(isGlobal)
+    			{
+					gencode_function(".field public static ");
+					gencode_function($2); 
+					gencode_function(" F = ");
+					gencode_function($4);
+					gencode_function("\n");
+				}
+    		}
+    		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
+    		{
+    			insert_symbol($2, "variable", "float", curr_scope, temp);
+    			if(isGlobal)
+    			{
+					gencode_function(".field public static ");
+					gencode_function($2); 
+					gencode_function(" F = ");
+					gencode_function($4);
+					gencode_function("\n");
+				}
+    		}
+    		else
+    		{
+    			// semantic error
+				error_type = strdup("Redeclared variable");
+				error_target = strdup($2);
+    		}
+    	}
+    	else if(strcmp($1, "bool") == 0)
+    	{
+    		char temp[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0"};
+    		int targetIndex = lookup_symbol($2);
+    		if(targetIndex == -1)
+    		{
+    			insert_symbol($2, "variable", "bool", curr_scope, temp);
+    			if(isGlobal)
+    			{
+					gencode_function(".field public static ");
+					gencode_function($2); 
+					gencode_function(" Z = ");
+					gencode_function($4);
+					gencode_function("\n");
+				}
+    		}
+    		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
+    		{
+    			insert_symbol($2, "variable", "bool", curr_scope, temp);
+    			if(isGlobal)
+    			{
+					gencode_function(".field public static ");
+					gencode_function($2); 
+					gencode_function(" Z = ");
+					gencode_function($4);
+					gencode_function("\n");
+				}
+    		}
+    		else
+    		{
+    			error_type = strdup("Redeclared variable");
+				error_target = strdup($2);
+    		}
+    	}
+    	else if(strcmp($1, "string") == 0)
+    	{
+    		char temp[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0"};
+    		int targetIndex = lookup_symbol($2);
+    		if(targetIndex == -1)
+    		{
+    			insert_symbol($2, "variable", "string", curr_scope, temp);
+    			if(isGlobal)
+    			{
+					gencode_function(".field public static ");
+					gencode_function($2); 
+					gencode_function(" Ljava/lang/String = ");
+					gencode_function($4);
+					gencode_function("\n");
+				}
+    		}
+    		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
+    		{
+    			insert_symbol($2, "variable", "string", curr_scope, temp);
+    			if(isGlobal)
+    			{
+					gencode_function(".field public static ");
+					gencode_function($2); 
+					gencode_function(" Ljava/lang/String = ");
+					gencode_function($4);
+					gencode_function("\n");
+				}
+    		}
+    		else
+    		{
+    			error_type = strdup("Redeclared variable");
+				error_target = strdup($2);
+    		}
+    	}
+    	else
+    	{
+    		error_type = strdup("Redeclared variable");
+			error_target = strdup($2);
+    	}
+    }
+    | type ID SEMICOLON {
     	if(strcmp($1, "int") == 0)
     	{
     		char temp[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0"};
@@ -165,10 +311,6 @@ var_decl
 					gencode_function($2); 
 					gencode_function(" I = 0\n");
 				}
-				else
-				{
-					
-				}
     		}
     		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
     		{
@@ -179,10 +321,131 @@ var_decl
 					gencode_function($2); 
 					gencode_function(" I = 0\n");
 				}
-				else
-				{
-					
+    		}
+    		else
+    		{
+    			// semantic error
+				error_type = strdup("Redeclared variable");
+				error_target = strdup($2);
+    		}
+    	}
+    	else if(strcmp($1, "float") == 0)
+    	{
+    		char temp[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0"};
+    		int targetIndex = lookup_symbol($2);
+    		if(targetIndex == -1)
+    		{
+    			insert_symbol($2, "variable", "float", curr_scope, temp);
+    			if(isGlobal)
+    			{
+					gencode_function(".field public static ");
+					gencode_function($2); 
+					gencode_function(" F = 0\n");
 				}
+    		}
+    		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
+    		{
+    			insert_symbol($2, "variable", "float", curr_scope, temp);
+    			if(isGlobal)
+    			{
+					gencode_function(".field public static ");
+					gencode_function($2); 
+					gencode_function(" F = 0\n");
+				}
+    		}
+    		else
+    		{
+    			// semantic error
+				error_type = strdup("Redeclared variable");
+				error_target = strdup($2);
+    		}
+    	}
+    	else if(strcmp($1, "bool") == 0)
+    	{
+    		char temp[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0"};
+    		int targetIndex = lookup_symbol($2);
+    		if(targetIndex == -1)
+    		{
+    			insert_symbol($2, "variable", "bool", curr_scope, temp);
+    			if(isGlobal)
+    			{
+					gencode_function(".field public static ");
+					gencode_function($2); 
+					gencode_function(" Z = 0\n");
+				}
+    		}
+    		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
+    		{
+    			insert_symbol($2, "variable", "bool", curr_scope, temp);
+    			if(isGlobal)
+    			{
+					gencode_function(".field public static ");
+					gencode_function($2); 
+					gencode_function(" Z = 0\n");
+				}
+    		}
+    		else
+    		{
+    			// semantic error
+				error_type = strdup("Redeclared variable");
+				error_target = strdup($2);
+    		}
+    	}
+    	else if(strcmp($1, "string") == 0)
+    	{
+    		char temp[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0"};
+    		int targetIndex = lookup_symbol($2);
+    		if(targetIndex == -1)
+    		{
+    			insert_symbol($2, "variable", "string", curr_scope, temp);
+    			if(isGlobal)
+    			{
+					gencode_function(".field public static ");
+					gencode_function($2); 
+					gencode_function(" Ljava/lang/String = \"\\0\"\n");
+				}
+    		}
+    		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
+    		{
+    			insert_symbol($2, "variable", "string", curr_scope, temp);
+    			if(isGlobal)
+    			{
+					gencode_function(".field public static ");
+					gencode_function($2); 
+					gencode_function(" Ljava/lang/String = \"\\0\"\n");
+				}
+    		}
+    		else
+    		{
+    			// semantic error
+				error_type = strdup("Redeclared variable");
+				error_target = strdup($2);
+    		}
+    	}
+    	else
+    	{
+    		// semantic error
+    		error_type = strdup("Redeclared variable");
+			error_target = strdup($2);
+    	}
+    }
+;
+
+var_decl
+    : type ID ASGN initializer SEMICOLON {
+    	if(strcmp($1, "int") == 0)
+    	{
+    		char temp[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0"};
+    		int targetIndex = lookup_symbol($2);
+    		if(targetIndex == -1)
+    		{
+    			insert_symbol($2, "variable", "int", curr_scope, temp);
+    			// gencode -------------------------------------------
+    		}
+    		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
+    		{
+    			insert_symbol($2, "variable", "int", curr_scope, temp);
+    			// gencode -------------------------------------------
     		}
     		else
     		{
@@ -488,20 +751,39 @@ type
     | VOID { $$ = $1; }
 ;
 
+global_initializer
+	: I_CONST { char s[16]; sprintf(s, "%d", $1); $$ = strdup(s); }
+	| F_CONST { char s[16]; sprintf(s, "%f", $1); $$ = strdup(s); }
+	| STR_CONST { $$ = strdup($1); }
+	| TRUE_RESULT { char s[16]; sprintf(s, "%d", $1); $$ = strdup(s); }
+	| FALSE_RESULT { char s[16]; sprintf(s, "%d", $1); $$ = strdup(s); }
+;
+
 initializer
-	: logic_initializer
-	| STR_CONST 
+	: logic_initializer { $$ = strdup($1); }
+	| STR_CONST { char *s = strdup("ldc \"");
+				  strcat(s, strdup($1));
+				  strcat(s, strdup("\""));
+				  $$ = strdup(s);}
 ;
 
 logic_initializer
-	: number_initializer
-	| tf_initializer
+	: number_initializer { $$ = strdup($1); }
+	| tf_initializer { $$ = strdup($1); }
 ;
 
 number_initializer
-	: I_CONST 
-	| F_CONST 
-	| count_expr
+	: I_CONST { char s[16]; sprintf(s, "%d", $1); 
+			    char *s2 = strdup("ldc \"");
+				strcat(s2, strdup(s));
+				strcat(s2, strdup("\""));
+				$$ = strdup(s2); }
+	| F_CONST { char s[16]; sprintf(s, "%f", $1); 
+				char *s2 = strdup("ldc \"");
+				strcat(s2, strdup(s));
+				strcat(s2, strdup("\""));
+				$$ = strdup(s2); }
+	| count_expr { $$ = strdup("brabrabra\n"); }
 	| ID { 
 			char temp[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "decl"};
 			int targetIndex = lookup_symbol($1);
@@ -510,18 +792,27 @@ number_initializer
 				// semantic error
 				error_type = strdup("Undeclared variable");
 				error_target = strdup($1);
+				$$ = strdup("\n");
 			}
 			else
 			{
-				
+				$$ = strdup("brabrabra\n");
 			} 
 		}
-	| function_using
+	| function_using { $$ = strdup("brabrabra\n"); }
 ;
 
 tf_initializer
-	: TRUE_RESULT 
-	| FALSE_RESULT 
+	: TRUE_RESULT { char s[16]; sprintf(s, "%d", $1); 
+			    	char *s2 = strdup("ldc \"");
+					strcat(s2, strdup(s));
+					strcat(s2, strdup("\""));
+					$$ = strdup(s2); }
+	| FALSE_RESULT { char s[16]; sprintf(s, "%d", $1); 
+			    	 char *s2 = strdup("ldc \"");
+					 strcat(s2, strdup(s));
+					 strcat(s2, strdup("\""));
+					 $$ = strdup(s2); }
 	| ID { 
 			char temp[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "decl"};
 			int targetIndex = lookup_symbol($1);
@@ -530,13 +821,14 @@ tf_initializer
 				// semantic error
 				error_type = strdup("Undeclared variable");
 				error_target = strdup($1);
+				$$ = strdup("\n");
 			}
 			else
 			{
-				
+				$$ = strdup("brabrabra\n");
 			} 
 		}
-	| function_using
+	| function_using { $$ = strdup("brabrabra\n"); }
 ;
 
 count_expr  //need to complete it !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -839,10 +1131,11 @@ function_using
 				// semantic error
 				error_type = strdup("Undeclared function");
 				error_target = strdup($1);
+				$$ = "\n";
 			}
 			else
 			{
-				
+				$$ = strdup("brabrabra\n");
 			} 
 		}
 ;
