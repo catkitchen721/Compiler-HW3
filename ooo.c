@@ -1,18 +1,26 @@
 /* my test data */
 
 int a = 0;
-int b = 7;
-bool isStart = false;
+float b = 0.03;
+bool isStart = true;
+string s = "gg";
+int f;
+string ssss;
 
 void add(int a, int b)
 {
-	int c = 0;
+	int c = 0.3;
+	bool isDddd = false;
+	string thisString = "Hello!";
 	c = a + b;
 	return;
 }
 
 void main()
 {
+	float f = 3;
+	bool ooo;
+	string hahaha;
 	add(a, b);
 	isStart = true;
 	print("Yes");

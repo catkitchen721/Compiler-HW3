@@ -41,6 +41,7 @@ void dump_symbol();
 */
 
 int lookup_symbol(char name[32]);
+int deep_lookup_symbol(char name[32], int scope_level, char data_type[16]);
 void create_symbol();
 void insert_symbol(char name[32], char entry_type[32], char data_type[16], int scope_level, char formal_para[16][16]);
 void dump_symbol();
@@ -197,11 +198,20 @@ var_decl_global
     			insert_symbol($2, "variable", "float", curr_scope, temp);
     			if(isGlobal)
     			{
-					gencode_function(".field public static ");
-					gencode_function($2); 
-					gencode_function(" F = ");
-					gencode_function($4);
-					gencode_function("\n");
+					if(atof($4) == 0)
+					{
+						gencode_function(".field public static ");
+						gencode_function($2); 
+						gencode_function(" F\n");
+					}
+					else
+					{
+						gencode_function(".field public static ");
+						gencode_function($2); 
+						gencode_function(" F = ");
+						gencode_function($4);
+						gencode_function("\n");
+					}
 				}
     		}
     		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
@@ -209,11 +219,20 @@ var_decl_global
     			insert_symbol($2, "variable", "float", curr_scope, temp);
     			if(isGlobal)
     			{
-					gencode_function(".field public static ");
-					gencode_function($2); 
-					gencode_function(" F = ");
-					gencode_function($4);
-					gencode_function("\n");
+					if(atof($4) == 0)
+					{
+						gencode_function(".field public static ");
+						gencode_function($2); 
+						gencode_function(" F\n");
+					}
+					else
+					{
+						gencode_function(".field public static ");
+						gencode_function($2); 
+						gencode_function(" F = ");
+						gencode_function($4);
+						gencode_function("\n");
+					}
 				}
     		}
     		else
@@ -268,9 +287,9 @@ var_decl_global
     			{
 					gencode_function(".field public static ");
 					gencode_function($2); 
-					gencode_function(" Ljava/lang/String = ");
+					gencode_function(" Ljava/lang/String; = \"");
 					gencode_function($4);
-					gencode_function("\n");
+					gencode_function("\"\n");
 				}
     		}
     		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
@@ -280,9 +299,9 @@ var_decl_global
     			{
 					gencode_function(".field public static ");
 					gencode_function($2); 
-					gencode_function(" Ljava/lang/String = ");
+					gencode_function(" Ljava/lang/String; = \"");
 					gencode_function($4);
-					gencode_function("\n");
+					gencode_function("\"\n");
 				}
     		}
     		else
@@ -340,7 +359,7 @@ var_decl_global
     			{
 					gencode_function(".field public static ");
 					gencode_function($2); 
-					gencode_function(" F = 0\n");
+					gencode_function(" F\n");
 				}
     		}
     		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
@@ -350,7 +369,7 @@ var_decl_global
     			{
 					gencode_function(".field public static ");
 					gencode_function($2); 
-					gencode_function(" F = 0\n");
+					gencode_function(" F\n");
 				}
     		}
     		else
@@ -402,7 +421,7 @@ var_decl_global
     			{
 					gencode_function(".field public static ");
 					gencode_function($2); 
-					gencode_function(" Ljava/lang/String = \"\\0\"\n");
+					gencode_function(" Ljava/lang/String; = \"\\0\"\n");
 				}
     		}
     		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
@@ -412,7 +431,7 @@ var_decl_global
     			{
 					gencode_function(".field public static ");
 					gencode_function($2); 
-					gencode_function(" Ljava/lang/String = \"\\0\"\n");
+					gencode_function(" Ljava/lang/String; = \"\\0\"\n");
 				}
     		}
     		else
@@ -441,11 +460,33 @@ var_decl
     		{
     			insert_symbol($2, "variable", "int", curr_scope, temp);
     			// gencode -------------------------------------------
+    			int var_index = deep_lookup_symbol($2, curr_scope, $1);
+    			char s[16]; sprintf(s, "%d", var_index); 
+    			gencode_function("\t");
+    			gencode_function($4);
+    			if(NULL != strstr($4, "."))
+    			{
+    				gencode_function("\tf2i\n");
+    			}
+    			gencode_function("\tistore ");
+    			gencode_function(s);
+    			gencode_function("\n");
     		}
     		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
     		{
     			insert_symbol($2, "variable", "int", curr_scope, temp);
     			// gencode -------------------------------------------
+    			int var_index = deep_lookup_symbol($2, curr_scope, $1);
+    			char s[16]; sprintf(s, "%d", var_index);
+    			gencode_function("\t");
+    			gencode_function($4);
+    			if(NULL != strstr($4, "."))
+    			{
+    				gencode_function("\tf2i\n");
+    			}
+    			gencode_function("\tistore ");
+    			gencode_function(s);
+    			gencode_function("\n");
     		}
     		else
     		{
@@ -461,10 +502,34 @@ var_decl
     		if(targetIndex == -1)
     		{
     			insert_symbol($2, "variable", "float", curr_scope, temp);
+    			// gencode -------------------------------------------
+    			int var_index = deep_lookup_symbol($2, curr_scope, $1);
+    			char s[16]; sprintf(s, "%d", var_index);
+    			gencode_function("\t");
+    			gencode_function($4);
+    			if(NULL == strstr($4, "."))
+    			{
+    				gencode_function("\ti2f\n");
+    			}
+    			gencode_function("\tfstore ");
+    			gencode_function(s);
+    			gencode_function("\n");
     		}
     		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
     		{
     			insert_symbol($2, "variable", "float", curr_scope, temp);
+    			// gencode -------------------------------------------
+    			int var_index = deep_lookup_symbol($2, curr_scope, $1);
+    			char s[16]; sprintf(s, "%d", var_index);
+    			gencode_function("\t");
+    			gencode_function($4);
+    			if(NULL == strstr($4, "."))
+    			{
+    				gencode_function("\ti2f\n");
+    			}
+    			gencode_function("\tfstore ");
+    			gencode_function(s);
+    			gencode_function("\n");
     		}
     		else
     		{
@@ -480,10 +545,26 @@ var_decl
     		if(targetIndex == -1)
     		{
     			insert_symbol($2, "variable", "bool", curr_scope, temp);
+    			// gencode -------------------------------------------
+    			int var_index = deep_lookup_symbol($2, curr_scope, $1);
+    			char s[16]; sprintf(s, "%d", var_index);
+    			gencode_function("\t");
+    			gencode_function($4);
+    			gencode_function("\tistore ");
+    			gencode_function(s);
+    			gencode_function("\n");
     		}
     		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
     		{
     			insert_symbol($2, "variable", "bool", curr_scope, temp);
+    			// gencode -------------------------------------------
+    			int var_index = deep_lookup_symbol($2, curr_scope, $1);
+    			char s[16]; sprintf(s, "%d", var_index);
+    			gencode_function("\t");
+    			gencode_function($4);
+    			gencode_function("\tistore ");
+    			gencode_function(s);
+    			gencode_function("\n");
     		}
     		else
     		{
@@ -498,10 +579,26 @@ var_decl
     		if(targetIndex == -1)
     		{
     			insert_symbol($2, "variable", "string", curr_scope, temp);
+    			// gencode -------------------------------------------
+    			int var_index = deep_lookup_symbol($2, curr_scope, $1);
+    			char s[16]; sprintf(s, "%d", var_index);
+    			gencode_function("\t");
+    			gencode_function($4);
+    			gencode_function("\tastore ");
+    			gencode_function(s);
+    			gencode_function("\n");
     		}
     		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
     		{
     			insert_symbol($2, "variable", "string", curr_scope, temp);
+    			// gencode -------------------------------------------
+    			int var_index = deep_lookup_symbol($2, curr_scope, $1);
+    			char s[16]; sprintf(s, "%d", var_index);
+    			gencode_function("\t");
+    			gencode_function($4);
+    			gencode_function("\tastore ");
+    			gencode_function(s);
+    			gencode_function("\n");
     		}
     		else
     		{
@@ -523,10 +620,24 @@ var_decl
     		if(targetIndex == -1)
     		{
     			insert_symbol($2, "variable", "int", curr_scope, temp);
+    			// gencode -------------------------------------------
+    			int var_index = deep_lookup_symbol($2, curr_scope, $1);
+    			char s[16]; sprintf(s, "%d", var_index);
+    			gencode_function("\tldc 0\n");
+    			gencode_function("\tistore ");
+    			gencode_function(s);
+    			gencode_function("\n");
     		}
     		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
     		{
     			insert_symbol($2, "variable", "int", curr_scope, temp);
+    			// gencode -------------------------------------------
+    			int var_index = deep_lookup_symbol($2, curr_scope, $1);
+    			char s[16]; sprintf(s, "%d", var_index);
+    			gencode_function("\tldc 0\n");
+    			gencode_function("\tistore ");
+    			gencode_function(s);
+    			gencode_function("\n");
     		}
     		else
     		{
@@ -542,10 +653,24 @@ var_decl
     		if(targetIndex == -1)
     		{
     			insert_symbol($2, "variable", "float", curr_scope, temp);
+    			// gencode -------------------------------------------
+    			int var_index = deep_lookup_symbol($2, curr_scope, $1);
+    			char s[16]; sprintf(s, "%d", var_index);
+    			gencode_function("\tldc 0.000000\n");
+    			gencode_function("\tfstore ");
+    			gencode_function(s);
+    			gencode_function("\n");
     		}
     		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
     		{
     			insert_symbol($2, "variable", "float", curr_scope, temp);
+    			// gencode -------------------------------------------
+    			int var_index = deep_lookup_symbol($2, curr_scope, $1);
+    			char s[16]; sprintf(s, "%d", var_index);
+    			gencode_function("\tldc 0.000000\n");
+    			gencode_function("\tfstore ");
+    			gencode_function(s);
+    			gencode_function("\n");
     		}
     		else
     		{
@@ -561,10 +686,24 @@ var_decl
     		if(targetIndex == -1)
     		{
     			insert_symbol($2, "variable", "bool", curr_scope, temp);
+    			// gencode -------------------------------------------
+    			int var_index = deep_lookup_symbol($2, curr_scope, $1);
+    			char s[16]; sprintf(s, "%d", var_index);
+    			gencode_function("\tldc 0\n");
+    			gencode_function("\tistore ");
+    			gencode_function(s);
+    			gencode_function("\n");
     		}
     		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
     		{
     			insert_symbol($2, "variable", "bool", curr_scope, temp);
+    			// gencode -------------------------------------------
+    			int var_index = deep_lookup_symbol($2, curr_scope, $1);
+    			char s[16]; sprintf(s, "%d", var_index);
+    			gencode_function("\tldc 0\n");
+    			gencode_function("\tistore ");
+    			gencode_function(s);
+    			gencode_function("\n");
     		}
     		else
     		{
@@ -580,10 +719,24 @@ var_decl
     		if(targetIndex == -1)
     		{
     			insert_symbol($2, "variable", "string", curr_scope, temp);
+    			// gencode -------------------------------------------
+    			int var_index = deep_lookup_symbol($2, curr_scope, $1);
+    			char s[16]; sprintf(s, "%d", var_index);
+    			gencode_function("\tldc \"\\0\"\n");
+    			gencode_function("\tastore ");
+    			gencode_function(s);
+    			gencode_function("\n");
     		}
     		else if(targetIndex != -1 && symbol_table[targetIndex].scope_level != curr_scope)
     		{
     			insert_symbol($2, "variable", "string", curr_scope, temp);
+    			// gencode -------------------------------------------
+    			int var_index = deep_lookup_symbol($2, curr_scope, $1);
+    			char s[16]; sprintf(s, "%d", var_index);
+    			gencode_function("\tldc \"\\0\"\n");
+    			gencode_function("\tastore ");
+    			gencode_function(s);
+    			gencode_function("\n");
     		}
     		else
     		{
@@ -763,7 +916,7 @@ initializer
 	: logic_initializer { $$ = strdup($1); }
 	| STR_CONST { char *s = strdup("ldc \"");
 				  strcat(s, strdup($1));
-				  strcat(s, strdup("\""));
+				  strcat(s, strdup("\"\n"));
 				  $$ = strdup(s);}
 ;
 
@@ -774,14 +927,14 @@ logic_initializer
 
 number_initializer
 	: I_CONST { char s[16]; sprintf(s, "%d", $1); 
-			    char *s2 = strdup("ldc \"");
+			    char *s2 = strdup("ldc ");
 				strcat(s2, strdup(s));
-				strcat(s2, strdup("\""));
+				strcat(s2, strdup("\n"));
 				$$ = strdup(s2); }
 	| F_CONST { char s[16]; sprintf(s, "%f", $1); 
-				char *s2 = strdup("ldc \"");
+				char *s2 = strdup("ldc ");
 				strcat(s2, strdup(s));
-				strcat(s2, strdup("\""));
+				strcat(s2, strdup("\n"));
 				$$ = strdup(s2); }
 	| count_expr { $$ = strdup("brabrabra\n"); }
 	| ID { 
@@ -804,14 +957,14 @@ number_initializer
 
 tf_initializer
 	: TRUE_RESULT { char s[16]; sprintf(s, "%d", $1); 
-			    	char *s2 = strdup("ldc \"");
+			    	char *s2 = strdup("ldc ");
 					strcat(s2, strdup(s));
-					strcat(s2, strdup("\""));
+					strcat(s2, strdup("\n"));
 					$$ = strdup(s2); }
 	| FALSE_RESULT { char s[16]; sprintf(s, "%d", $1); 
-			    	 char *s2 = strdup("ldc \"");
+			    	 char *s2 = strdup("ldc ");
 					 strcat(s2, strdup(s));
-					 strcat(s2, strdup("\""));
+					 strcat(s2, strdup("\n"));
 					 $$ = strdup(s2); }
 	| ID { 
 			char temp[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "decl"};
@@ -1291,6 +1444,21 @@ int lookup_symbol(char name[32]) {
 		if(strcmp(symbol_table[i].name, name) == 0)
 		{
 			return i;  //used
+		}
+	}
+	return -1;
+}
+int deep_lookup_symbol(char name[32], int scope_level, char data_type[16]) {
+	int result = -1;
+	for(int i=0; i<30; i++)
+	{
+		if(symbol_table[i].scope_level == scope_level && strcmp(symbol_table[i].entry_type, "variable") == 0)
+		{
+			result++;
+		}
+		if(strcmp(symbol_table[i].name, name) == 0 && symbol_table[i].scope_level == scope_level && strcmp(symbol_table[i].data_type, data_type) == 0)
+		{
+			return result;  //used
 		}
 	}
 	return -1;
