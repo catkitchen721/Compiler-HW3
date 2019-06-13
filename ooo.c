@@ -19,6 +19,7 @@ void add(int a, int b)
 void main()
 {
 	float f = 3;
+	print(3.0);
 	bool ooo;
 	string hahaha;
 	add(a, b);

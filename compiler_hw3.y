@@ -82,6 +82,7 @@ void gencode_function(char *cmd);
 /* Nonterminal with return, which need to sepcify type */
 %type <string> type function_using
 %type <string> initializer logic_initializer number_initializer tf_initializer global_initializer
+%type <string> print_target
 
 /* Yacc will start at this nonterminal */
 %start program
@@ -984,7 +985,7 @@ tf_initializer
 	| function_using { $$ = strdup("brabrabra\n"); }
 ;
 
-count_expr  //need to complete it !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+count_expr  //need to complete it 
 	: number_initializer two_term_op number_initializer
 	| logic_initializer two_term_op_logic logic_initializer
 	| LB count_expr RB
@@ -1253,7 +1254,18 @@ asgn_stat
 ;
 
 print_stat
-	: PRINT LB print_target RB
+	: PRINT LB print_target RB {
+		gencode_function("\t");
+		gencode_function($3);
+		gencode_function("\tgetstatic java/lang/System/out Ljava/io/PrintStream;\n");
+		gencode_function("\tswap\n");
+		if(NULL != strstr($3, "\""))
+			gencode_function("\tinvokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\n");
+		else if(NULL != strstr($3, "."))
+			gencode_function("\tinvokevirtual java/io/PrintStream/println(F)V\n");
+		else
+			gencode_function("\tinvokevirtual java/io/PrintStream/println(I)V\n");
+	}
 ;
 
 print_target
@@ -1265,14 +1277,18 @@ print_target
 				// semantic error
 				error_type = strdup("Undeclared variable");
 				error_target = strdup($1);
+				$$ = strdup("\n");
 			}
 			else
 			{
-				
+				$$ = strdup("brabrabra\n");
 			} 
 		}
-	| STR_CONST
-	| number_initializer
+	| STR_CONST { char *s2 = strdup("ldc \"");
+				  strcat(s2, strdup($1));
+				  strcat(s2, strdup("\"\n"));
+				  $$ = strdup(s2); }
+	| number_initializer { $$ = strdup($1); }
 ;
 
 function_using
