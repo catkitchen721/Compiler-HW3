@@ -28,6 +28,8 @@ char curr_formal_para[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0",
 int curr_formal_para_index = 0;
 int dump_on = -1;
 int isGlobal = 1;
+int hasError = 0;
+FILE *deleteFile;
 
 FILE *file; // To generate .j file for Jasmin
 
@@ -41,12 +43,13 @@ void dump_symbol();
 */
 
 int lookup_symbol(char name[32]);
+int notype_lookup_symbol(char name[32], int scope_level);
 int deep_lookup_symbol(char name[32], int scope_level, char data_type[16]);
 void create_symbol();
 void insert_symbol(char name[32], char entry_type[32], char data_type[16], int scope_level, char formal_para[16][16]);
 void dump_symbol();
 
-void free_symbol_table();
+char *takeID(char name[32]);
 
 /* code generation functions, just an example! */
 void gencode_function(char *cmd);
@@ -186,6 +189,7 @@ var_decl_global
     		else
     		{
     			// semantic error
+    			hasError = 1;
 				error_type = strdup("Redeclared variable");
 				error_target = strdup($2);
     		}
@@ -239,6 +243,7 @@ var_decl_global
     		else
     		{
     			// semantic error
+    			hasError = 1;
 				error_type = strdup("Redeclared variable");
 				error_target = strdup($2);
     		}
@@ -273,6 +278,7 @@ var_decl_global
     		}
     		else
     		{
+    			hasError = 1;
     			error_type = strdup("Redeclared variable");
 				error_target = strdup($2);
     		}
@@ -307,12 +313,14 @@ var_decl_global
     		}
     		else
     		{
+    			hasError = 1;
     			error_type = strdup("Redeclared variable");
 				error_target = strdup($2);
     		}
     	}
     	else
     	{
+    		hasError = 1;
     		error_type = strdup("Redeclared variable");
 			error_target = strdup($2);
     	}
@@ -345,6 +353,7 @@ var_decl_global
     		else
     		{
     			// semantic error
+    			hasError = 1;
 				error_type = strdup("Redeclared variable");
 				error_target = strdup($2);
     		}
@@ -376,6 +385,7 @@ var_decl_global
     		else
     		{
     			// semantic error
+    			hasError = 1;
 				error_type = strdup("Redeclared variable");
 				error_target = strdup($2);
     		}
@@ -407,6 +417,7 @@ var_decl_global
     		else
     		{
     			// semantic error
+    			hasError = 1;
 				error_type = strdup("Redeclared variable");
 				error_target = strdup($2);
     		}
@@ -438,6 +449,7 @@ var_decl_global
     		else
     		{
     			// semantic error
+    			hasError = 1;
 				error_type = strdup("Redeclared variable");
 				error_target = strdup($2);
     		}
@@ -445,6 +457,7 @@ var_decl_global
     	else
     	{
     		// semantic error
+    		hasError = 1;
     		error_type = strdup("Redeclared variable");
 			error_target = strdup($2);
     	}
@@ -492,6 +505,7 @@ var_decl
     		else
     		{
     			// semantic error
+    			hasError = 1;
 				error_type = strdup("Redeclared variable");
 				error_target = strdup($2);
     		}
@@ -535,6 +549,7 @@ var_decl
     		else
     		{
     			// semantic error
+    			hasError = 1;
 				error_type = strdup("Redeclared variable");
 				error_target = strdup($2);
     		}
@@ -569,6 +584,7 @@ var_decl
     		}
     		else
     		{
+    			hasError = 1;
     			error_type = strdup("Redeclared variable");
 				error_target = strdup($2);
     		}
@@ -603,12 +619,14 @@ var_decl
     		}
     		else
     		{
+    			hasError = 1;
     			error_type = strdup("Redeclared variable");
 				error_target = strdup($2);
     		}
     	}
     	else
     	{
+    		hasError = 1;
     		error_type = strdup("Redeclared variable");
 			error_target = strdup($2);
     	}
@@ -643,6 +661,7 @@ var_decl
     		else
     		{
     			// semantic error
+    			hasError = 1;
 				error_type = strdup("Redeclared variable");
 				error_target = strdup($2);
     		}
@@ -676,6 +695,7 @@ var_decl
     		else
     		{
     			// semantic error
+    			hasError = 1;
 				error_type = strdup("Redeclared variable");
 				error_target = strdup($2);
     		}
@@ -709,6 +729,7 @@ var_decl
     		else
     		{
     			// semantic error
+    			hasError = 1;
 				error_type = strdup("Redeclared variable");
 				error_target = strdup($2);
     		}
@@ -742,6 +763,7 @@ var_decl
     		else
     		{
     			// semantic error
+    			hasError = 1;
 				error_type = strdup("Redeclared variable");
 				error_target = strdup($2);
     		}
@@ -749,6 +771,7 @@ var_decl
     	else
     	{
     		// semantic error
+    		hasError = 1;
     		error_type = strdup("Redeclared variable");
 			error_target = strdup($2);
     	}
@@ -772,6 +795,7 @@ function_decl
     		else
     		{
     			// semantic error
+    			hasError = 1;
 				error_type = strdup("Redeclared function");
 				error_target = strdup($2);
     		}
@@ -791,6 +815,7 @@ function_decl
     		else
     		{
     			// semantic error
+    			hasError = 1;
 				error_type = strdup("Redeclared function");
 				error_target = strdup($2);
     		}
@@ -810,6 +835,7 @@ function_decl
     		else
     		{
     			// semantic error
+    			hasError = 1;
 				error_type = strdup("Redeclared function");
 				error_target = strdup($2);
     		}
@@ -829,6 +855,7 @@ function_decl
     		else
     		{
     			// semantic error
+    			hasError = 1;
 				error_type = strdup("Redeclared function");
 				error_target = strdup($2);
     		}
@@ -848,6 +875,7 @@ function_decl
     		else
     		{
     			// semantic error
+    			hasError = 1;
 				error_type = strdup("Redeclared function");
 				error_target = strdup($2);
     		}
@@ -884,6 +912,7 @@ para
 		else
 		{
 			// semantic error
+			hasError = 1;
 			error_type = strdup("Redeclared variable");
 			error_target = strdup($2);
 		}
@@ -944,13 +973,14 @@ number_initializer
 			if(targetIndex == -1)
 			{
 				// semantic error
+				hasError = 1;
 				error_type = strdup("Undeclared variable");
 				error_target = strdup($1);
 				$$ = strdup("\n");
 			}
 			else
 			{
-				$$ = strdup("brabrabra\n");
+				$$ = strdup(takeID($1));
 			} 
 		}
 	| function_using { $$ = strdup("brabrabra\n"); }
@@ -973,6 +1003,7 @@ tf_initializer
 			if(targetIndex == -1)
 			{
 				// semantic error
+				hasError = 1;
 				error_type = strdup("Undeclared variable");
 				error_target = strdup($1);
 				$$ = strdup("\n");
@@ -996,6 +1027,7 @@ count_expr  //need to complete it
 			if(targetIndex == -1)
 			{
 				// semantic error
+				hasError = 1;
 				error_type = strdup("Undeclared variable");
 				error_target = strdup($2);
 			}
@@ -1010,6 +1042,7 @@ count_expr  //need to complete it
 			if(targetIndex == -1)
 			{
 				// semantic error
+				hasError = 1;
 				error_type = strdup("Undeclared variable");
 				error_target = strdup($1);
 			}
@@ -1105,6 +1138,7 @@ function_define_head
 		else
 		{
 			// semantic error
+			hasError = 1;
 			error_type = strdup("Redeclared function");
 			error_target = strdup($2);
 		}
@@ -1145,6 +1179,7 @@ asgn_stat
 			if(targetIndex == -1)
 			{
 				// semantic error
+				hasError = 1;
 				error_type = strdup("Undeclared variable");
 				error_target = strdup($1);
 			}
@@ -1159,6 +1194,7 @@ asgn_stat
 			if(targetIndex == -1)
 			{
 				// semantic error
+				hasError = 1;
 				error_type = strdup("Undeclared variable");
 				error_target = strdup($1);
 			}
@@ -1173,6 +1209,7 @@ asgn_stat
 			if(targetIndex == -1)
 			{
 				// semantic error
+				hasError = 1;
 				error_type = strdup("Undeclared variable");
 				error_target = strdup($1);
 			}
@@ -1187,6 +1224,7 @@ asgn_stat
 			if(targetIndex == -1)
 			{
 				// semantic error
+				hasError = 1;
 				error_type = strdup("Undeclared variable");
 				error_target = strdup($1);
 			}
@@ -1201,6 +1239,7 @@ asgn_stat
 			if(targetIndex == -1)
 			{
 				// semantic error
+				hasError = 1;
 				error_type = strdup("Undeclared variable");
 				error_target = strdup($1);
 			}
@@ -1215,6 +1254,7 @@ asgn_stat
 			if(targetIndex == -1)
 			{
 				// semantic error
+				hasError = 1;
 				error_type = strdup("Undeclared variable");
 				error_target = strdup($1);
 			}
@@ -1229,6 +1269,7 @@ asgn_stat
 			if(targetIndex == -1)
 			{
 				// semantic error
+				hasError = 1;
 				error_type = strdup("Undeclared variable");
 				error_target = strdup($1);
 			}
@@ -1243,6 +1284,7 @@ asgn_stat
 			if(targetIndex == -1)
 			{
 				// semantic error
+				hasError = 1;
 				error_type = strdup("Undeclared variable");
 				error_target = strdup($2);
 			}
@@ -1259,12 +1301,27 @@ print_stat
 		gencode_function($3);
 		gencode_function("\tgetstatic java/lang/System/out Ljava/io/PrintStream;\n");
 		gencode_function("\tswap\n");
-		if(NULL != strstr($3, "\""))
-			gencode_function("\tinvokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\n");
-		else if(NULL != strstr($3, "."))
-			gencode_function("\tinvokevirtual java/io/PrintStream/println(F)V\n");
-		else
+		if($3[0] == 'i' || $3[strlen($3)-2] == 'I')
+		{
 			gencode_function("\tinvokevirtual java/io/PrintStream/println(I)V\n");
+		}
+		else if($3[0] == 'f' || $3[strlen($3)-2] == 'F')
+		{
+			gencode_function("\tinvokevirtual java/io/PrintStream/println(F)V\n");
+		}
+		else if($3[0] == 'a' || $3[strlen($3)-2] == ';')
+		{
+			gencode_function("\tinvokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\n");
+		}
+		else
+		{
+			if(NULL != strstr($3, "\""))
+				gencode_function("\tinvokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\n");
+			else if(NULL != strstr($3, "."))
+				gencode_function("\tinvokevirtual java/io/PrintStream/println(F)V\n");
+			else
+				gencode_function("\tinvokevirtual java/io/PrintStream/println(I)V\n");
+		}
 	}
 ;
 
@@ -1275,13 +1332,14 @@ print_target
 			if(targetIndex == -1)
 			{
 				// semantic error
+				hasError = 1;
 				error_type = strdup("Undeclared variable");
 				error_target = strdup($1);
 				$$ = strdup("\n");
 			}
 			else
 			{
-				$$ = strdup("brabrabra\n");
+				$$ = strdup(takeID($1));
 			} 
 		}
 	| STR_CONST { char *s2 = strdup("ldc \"");
@@ -1298,6 +1356,7 @@ function_using
 			if(targetIndex == -1)
 			{
 				// semantic error
+				hasError = 1;
 				error_type = strdup("Undeclared function");
 				error_target = strdup($1);
 				$$ = "\n";
@@ -1370,12 +1429,18 @@ int main(int argc, char** argv)
 	}
 
     fclose(file);
+    
+    if(hasError)
+	{
+		remove("compiler_hw3.j");
+	}
 
     return 0;
 }
 
 void yyerror(char *s)
 {
+	hasError = 1;
 	if(strcmp(s, "syntax error") == 0)
 	{
 		(strcmp(buf, "\n") == 0)?printf("%d:%s\n", yylineno + 1, buf):printf("%d: %s\n", yylineno + 1, buf); 
@@ -1464,11 +1529,29 @@ int lookup_symbol(char name[32]) {
 	}
 	return -1;
 }
+
+int notype_lookup_symbol(char name[32], int scope_level)
+{
+	int result = -1;
+	for(int i=0; i<30; i++)
+	{
+		if((symbol_table[i].scope_level <= scope_level && symbol_table[i].scope_level != 0) && (strcmp(symbol_table[i].entry_type, "variable") == 0 || strcmp(symbol_table[i].entry_type, "parameter") == 0))
+		{
+			result++;
+		}
+		if(strcmp(symbol_table[i].name, name) == 0 && symbol_table[i].scope_level == scope_level)
+		{
+			return result;  //used
+		}
+	}
+	return -1;
+}
+
 int deep_lookup_symbol(char name[32], int scope_level, char data_type[16]) {
 	int result = -1;
 	for(int i=0; i<30; i++)
 	{
-		if(symbol_table[i].scope_level == scope_level && strcmp(symbol_table[i].entry_type, "variable") == 0)
+		if(symbol_table[i].scope_level == scope_level && (strcmp(symbol_table[i].entry_type, "variable") == 0 || strcmp(symbol_table[i].entry_type, "parameter") == 0))
 		{
 			result++;
 		}
@@ -1543,6 +1626,77 @@ void dump_symbol() {
     {
     	printf("\n");
     }
+}
+
+char *takeID(char name[32])
+{
+	char thisCode[256] = "\0";
+	int idIndex = notype_lookup_symbol(name, curr_scope);
+	if(strcmp(symbol_table[lookup_symbol(name)].data_type, "int") == 0)
+	{
+		if(symbol_table[lookup_symbol(name)].scope_level == 0)
+		{
+			strcat(thisCode, "getstatic compiler_hw3/");
+			strcat(thisCode, name);
+			strcat(thisCode, " I\n");
+		}
+		else
+		{
+			strcat(thisCode, "iload ");
+			char s[16]; sprintf(s, "%d", idIndex);
+			strcat(thisCode, s);
+			strcat(thisCode, "\n");
+		}
+	}
+	else if(strcmp(symbol_table[lookup_symbol(name)].data_type, "float") == 0)
+	{
+		if(symbol_table[lookup_symbol(name)].scope_level == 0)
+		{
+			strcat(thisCode, "getstatic compiler_hw3/");
+			strcat(thisCode, name);
+			strcat(thisCode, " F\n");
+		}
+		else
+		{
+			strcat(thisCode, "fload ");
+			char s[16]; sprintf(s, "%d", idIndex);
+			strcat(thisCode, s);
+			strcat(thisCode, "\n");
+		}
+	}
+	else if(strcmp(symbol_table[lookup_symbol(name)].data_type, "bool") == 0)
+	{
+		if(symbol_table[lookup_symbol(name)].scope_level == 0)
+		{
+			strcat(thisCode, "getstatic compiler_hw3/");
+			strcat(thisCode, name);
+			strcat(thisCode, " Z\n");
+		}
+		else
+		{
+			strcat(thisCode, "iload ");
+			char s[16]; sprintf(s, "%d", idIndex);
+			strcat(thisCode, s);
+			strcat(thisCode, "\n");
+		}
+	}
+	else if(strcmp(symbol_table[lookup_symbol(name)].data_type, "string") == 0)
+	{
+		if(symbol_table[lookup_symbol(name)].scope_level == 0)
+		{
+			strcat(thisCode, "getstatic compiler_hw3/");
+			strcat(thisCode, name);
+			strcat(thisCode, " Ljava/lang/String;\n");
+		}
+		else
+		{
+			strcat(thisCode, "aload ");
+			char s[16]; sprintf(s, "%d", idIndex);
+			strcat(thisCode, s);
+			strcat(thisCode, "\n");
+		}
+	}
+	return strdup(thisCode);
 }
 
 /* code generation functions */

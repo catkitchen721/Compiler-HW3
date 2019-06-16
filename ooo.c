@@ -4,7 +4,7 @@ int a = 0;
 float b = 0.03;
 bool isStart = true;
 string s = "gg";
-int f;
+int f = 5;
 string ssss;
 
 void add(int a, int b)
@@ -18,12 +18,11 @@ void add(int a, int b)
 
 void main()
 {
-	float f = 3;
-	print(3.0);
+	string ac = "hahaha";
+	print(s);
 	bool ooo;
 	string hahaha;
 	add(a, b);
-	isStart = true;
-	print("Yes");
+	print(b);
 	return;
 }
