@@ -12,14 +12,19 @@ void add(int a, int b)
 	int c = 0.3;
 	bool isDddd = false;
 	string thisString = "Hello!";
-	c = a + b * b > c + b < a == b;
+	c = b + b * b + b;
 	return;
 }
 
 void main()
 {
+	int ddd = 3;
+	float fwfe = 4.5;
+	int opdwop = 4;
+	float eun = 3.76;
 	string ac = "hahaha";
-	print(s);
+	fwfe = ddd + fwfe * opdwop + eun;
+	print(fwfe);
 	bool ooo;
 	string hahaha;
 	add(a, b);

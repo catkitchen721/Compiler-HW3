@@ -93,7 +93,7 @@ void gencode_function(char *cmd);
 /* Nonterminal with return, which need to sepcify type */
 %type <string> type function_using
 %type <string> initializer logic_initializer number_initializer tf_initializer global_initializer
-%type <string> print_target
+%type <string> print_target count_expr
 //%type <string> two_term_op two_term_op_logic pre_one_term_op both_one_term_op
 
 /* Yacc will start at this nonterminal */
@@ -975,7 +975,7 @@ number_initializer
 				strcat(s2, strdup(s));
 				strcat(s2, strdup("\n"));
 				$$ = strdup(s2); }
-	| count_expr { $$ = strdup("brabrabra\n"); }
+	| count_expr { $$ = strdup($1);}
 	| ID { 
 			char temp[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "decl"};
 			int targetIndex = lookup_symbol($1);
@@ -1027,43 +1027,87 @@ tf_initializer
 
 count_expr  //need to complete it 
 	: number_initializer ADD number_initializer {
-		printf("+\n");
+    	char *s2 = strdup("\t");
+		strcat(s2, strdup($1));
+		strcat(s2, strdup("\n"));
+		if($1[strlen($1)-2] == 'I' || $1[0] == 'i' || ($1[0] == 'l' && NULL == strstr($1, ".")))
+			strcat(s2, strdup("\ti2f\n"));
+		strcat(s2, strdup("\t"));
+		strcat(s2, strdup($3));
+		strcat(s2, strdup("\n"));
+		if($3[strlen($3)-2] == 'I' || $3[0] == 'i' || ($3[0] == 'l' && NULL == strstr($3, ".")))
+			strcat(s2, strdup("\ti2f\n"));
+		strcat(s2, strdup("\tfadd\n"));
+		$$ = strdup(s2);
 	}
 	| number_initializer SUB number_initializer {
-		printf("-\n");
+		char *s2 = strdup("\t");
+		strcat(s2, strdup($1));
+		strcat(s2, strdup("\n"));
+		if($1[strlen($1)-2] == 'I' || $1[0] == 'i' || ($1[0] == 'l' && NULL == strstr($1, ".")))
+			strcat(s2, strdup("\ti2f\n"));
+		strcat(s2, strdup("\t"));
+		strcat(s2, strdup($3));
+		strcat(s2, strdup("\n"));
+		if($3[strlen($3)-2] == 'I' || $3[0] == 'i' || ($3[0] == 'l' && NULL == strstr($3, ".")))
+			strcat(s2, strdup("\ti2f\n"));
+		strcat(s2, strdup("\tfsub\n"));
+		$$ = strdup(s2);
 	}
 	| number_initializer MUL number_initializer {
-		printf("*\n");
+		char *s2 = strdup("\t");
+		strcat(s2, strdup($1));
+		strcat(s2, strdup("\n"));
+		if($1[strlen($1)-2] == 'I' || $1[0] == 'i' || ($1[0] == 'l' && NULL == strstr($1, ".")))
+			strcat(s2, strdup("\ti2f\n"));
+		strcat(s2, strdup("\t"));
+		strcat(s2, strdup($3));
+		strcat(s2, strdup("\n"));
+		if($3[strlen($3)-2] == 'I' || $3[0] == 'i' || ($3[0] == 'l' && NULL == strstr($3, ".")))
+			strcat(s2, strdup("\ti2f\n"));
+		strcat(s2, strdup("\tfmul\n"));
+		$$ = strdup(s2);
 	}
 	| number_initializer DIV number_initializer {
-		printf("/\n");
+		char *s2 = strdup("\t");
+		strcat(s2, strdup($1));
+		strcat(s2, strdup("\n"));
+		if($1[strlen($1)-2] == 'I' || $1[0] == 'i' || ($1[0] == 'l' && NULL == strstr($1, ".")))
+			strcat(s2, strdup("\ti2f\n"));
+		strcat(s2, strdup("\t"));
+		strcat(s2, strdup($3));
+		strcat(s2, strdup("\n"));
+		if($3[strlen($3)-2] == 'I' || $3[0] == 'i' || ($3[0] == 'l' && NULL == strstr($3, ".")))
+			strcat(s2, strdup("\ti2f\n"));
+		strcat(s2, strdup("\tfdiv\n"));
+		$$ = strdup(s2);
 	}
 	| number_initializer MOD number_initializer {
-		printf("%%\n");
+		printf("%s %% %s \n", $1, $3);
 	}
 	| number_initializer MT number_initializer {
-		printf(">\n");
+		printf("%s > %s \n", $1, $3);
 	}
 	| number_initializer LT number_initializer {
-		printf("<\n");
+		printf("%s < %s \n", $1, $3);
 	}
 	| number_initializer MTE number_initializer {
-		printf(">=\n");
+		printf("%s >= %s \n", $1, $3);
 	}
 	| number_initializer LTE number_initializer {
-		printf("<=\n");
+		printf("%s <= %s \n", $1, $3);
 	}
 	| number_initializer EQ number_initializer {
-		printf("==\n");
+		printf("%s == %s \n", $1, $3);
 	}
 	| number_initializer NE number_initializer {
-		printf("!=\n");
+		printf("%s != %s \n", $1, $3);
 	}
 	| number_initializer AND number_initializer {
-		printf("&&\n");
+		printf("%s && %s \n", $1, $3);
 	}
 	| number_initializer OR number_initializer {
-		printf("||\n");
+		printf("%s || %s \n", $1, $3);
 	}
 	| logic_initializer AND logic_initializer {
 		
@@ -1202,7 +1246,35 @@ asgn_stat
 				error_target = strdup($1);
 			}
 			else
-			{
+			{	
+				gencode_function("\t");
+				gencode_function($3);
+				gencode_function("\n");
+				if(strcmp(symbol_table[lookup_symbol($1)].data_type, "int") == 0 && ($3[0] == '\t' || $3[0] == 'f' || ($3[0] == 'l' && NULL != strstr($3, ".") && NULL == strstr($3, "\""))))
+				{
+					gencode_function("\tf2i\n");
+					int var_index = deep_lookup_symbol($1, curr_scope, symbol_table[lookup_symbol($1)].data_type);
+    				char s[16]; sprintf(s, "%d", var_index);
+    				gencode_function("\tistore ");
+    				gencode_function(s);
+    				gencode_function("\n");
+				}
+				else if(strcmp(symbol_table[lookup_symbol($1)].data_type, "float") == 0 && ($3[0] == '\t' || $3[0] == 'f' || ($3[0] == 'l' && NULL != strstr($3, ".") && NULL == strstr($3, "\""))))
+				{
+					int var_index = deep_lookup_symbol($1, curr_scope, symbol_table[lookup_symbol($1)].data_type);
+    				char s[16]; sprintf(s, "%d", var_index);
+    				gencode_function("\tfstore ");
+    				gencode_function(s);
+    				gencode_function("\n");
+				}
+				else if(strcmp(symbol_table[lookup_symbol($1)].data_type, "string") == 0)
+				{
+					int var_index = deep_lookup_symbol($1, curr_scope, symbol_table[lookup_symbol($1)].data_type);
+    				char s[16]; sprintf(s, "%d", var_index);
+    				gencode_function("\tastore ");
+    				gencode_function(s);
+    				gencode_function("\n");
+				}
 				
 			} 
 		}
