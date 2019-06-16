@@ -27,34 +27,34 @@ id			{letter}+({letter}|{digit})*
 %%
 
  /* Arithmetic */
-"+"     { if(strcmp(error_type, "") == 0)CONCAT return ADD; }
-"-" 	{ if(strcmp(error_type, "") == 0)CONCAT return SUB; }
-"*" 	{ if(strcmp(error_type, "") == 0)CONCAT return MUL; }
-"/" 	{ if(strcmp(error_type, "") == 0)CONCAT return DIV; }
-"%"     { if(strcmp(error_type, "") == 0)CONCAT return MOD; }
-"++"    { if(strcmp(error_type, "") == 0)CONCAT return INC; }
-"--"    { if(strcmp(error_type, "") == 0)CONCAT return DEC; }
+"+"     { if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return ADD; }
+"-" 	{ if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return SUB; }
+"*" 	{ if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return MUL; }
+"/" 	{ if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return DIV; }
+"%"     { if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return MOD; }
+"++"    { if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return INC; }
+"--"    { if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return DEC; }
 
  /* Relational */
-">"		{ if(strcmp(error_type, "") == 0)CONCAT return MT; }
-"<"		{ if(strcmp(error_type, "") == 0)CONCAT return LT; }
-">="	{ if(strcmp(error_type, "") == 0)CONCAT return MTE; }
-"<="	{ if(strcmp(error_type, "") == 0)CONCAT return LTE; }
-"=="	{ if(strcmp(error_type, "") == 0)CONCAT return EQ; }
-"!="	{ if(strcmp(error_type, "") == 0)CONCAT return NE; }
+">"		{ if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return MT; }
+"<"		{ if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return LT; }
+">="	{ if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return MTE; }
+"<="	{ if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return LTE; }
+"=="	{ if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return EQ; }
+"!="	{ if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return NE; }
 
  /* Assignment */
-"="		{ if(strcmp(error_type, "") == 0)CONCAT return ASGN; }
-"+="	{ if(strcmp(error_type, "") == 0)CONCAT return ADDASGN; }
-"-="	{ if(strcmp(error_type, "") == 0)CONCAT return SUBASGN; }
-"*="	{ if(strcmp(error_type, "") == 0)CONCAT return MULASGN; }
-"/="	{ if(strcmp(error_type, "") == 0)CONCAT return DIVASGN; }
-"%="	{ if(strcmp(error_type, "") == 0)CONCAT return MODASGN; }
+"="		{ if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return ASGN; }
+"+="	{ if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return ADDASGN; }
+"-="	{ if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return SUBASGN; }
+"*="	{ if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return MULASGN; }
+"/="	{ if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return DIVASGN; }
+"%="	{ if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return MODASGN; }
 
  /* Logical */
-"&&"	{ if(strcmp(error_type, "") == 0)CONCAT return AND; }
-"||"	{ if(strcmp(error_type, "") == 0)CONCAT return OR; }
-"!"		{ if(strcmp(error_type, "") == 0)CONCAT return NOT; }
+"&&"	{ if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return AND; }
+"||"	{ if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return OR; }
+"!"		{ if(strcmp(error_type, "") == 0)CONCAT yylval.string = strdup(yytext);return NOT; }
 
  /* Delimiters */
 "("		{ if(strcmp(error_type, "") == 0)CONCAT return LB; }

@@ -67,10 +67,6 @@ void gencode_function(char *cmd);
 %token PRINT 
 %token IF ELSE FOR WHILE
 %token SEMICOLON
-%token ADD SUB MUL DIV MOD INC DEC
-%token MT LT MTE LTE EQ NE
-%token ASGN ADDASGN SUBASGN MULASGN DIVASGN MODASGN
-%token AND OR NOT
 %token LB RB LCB RCB LSB RSB COMMA
 %token RET CONTINUE BREAK
 %token C_COMMENT CPP_COMMENT NL
@@ -81,11 +77,24 @@ void gencode_function(char *cmd);
 %token <bool_val> TRUE_RESULT FALSE_RESULT
 %token <string> INT FLOAT BOOL STRING VOID
 %token <string> STR_CONST ID
+%token <string> ASGN //ADDASGN SUBASGN MULASGN DIVASGN MODASGN
+%token <string> AND OR NOT
+/*%token <string> MT LT MTE LTE EQ NE
+%token <string> ADD SUB
+%token <string> MUL DIV MOD
+%token <string> INC DEC*/
+
+%right ADDASGN SUBASGN MULASGN DIVASGN MODASGN
+%left MT LT MTE LTE EQ NE
+%left ADD SUB
+%left MUL DIV MOD
+%nonassoc INC DEC
 
 /* Nonterminal with return, which need to sepcify type */
 %type <string> type function_using
 %type <string> initializer logic_initializer number_initializer tf_initializer global_initializer
 %type <string> print_target
+//%type <string> two_term_op two_term_op_logic pre_one_term_op both_one_term_op
 
 /* Yacc will start at this nonterminal */
 %start program
@@ -1010,33 +1019,61 @@ tf_initializer
 			}
 			else
 			{
-				$$ = strdup("brabrabra\n");
+				$$ = strdup(takeID($1));
 			} 
 		}
 	| function_using { $$ = strdup("brabrabra\n"); }
 ;
 
 count_expr  //need to complete it 
-	: number_initializer two_term_op number_initializer
-	| logic_initializer two_term_op_logic logic_initializer
+	: number_initializer ADD number_initializer {
+		printf("+\n");
+	}
+	| number_initializer SUB number_initializer {
+		printf("-\n");
+	}
+	| number_initializer MUL number_initializer {
+		printf("*\n");
+	}
+	| number_initializer DIV number_initializer {
+		printf("/\n");
+	}
+	| number_initializer MOD number_initializer {
+		printf("%%\n");
+	}
+	| number_initializer MT number_initializer {
+		printf(">\n");
+	}
+	| number_initializer LT number_initializer {
+		printf("<\n");
+	}
+	| number_initializer MTE number_initializer {
+		printf(">=\n");
+	}
+	| number_initializer LTE number_initializer {
+		printf("<=\n");
+	}
+	| number_initializer EQ number_initializer {
+		printf("==\n");
+	}
+	| number_initializer NE number_initializer {
+		printf("!=\n");
+	}
+	| number_initializer AND number_initializer {
+		printf("&&\n");
+	}
+	| number_initializer OR number_initializer {
+		printf("||\n");
+	}
+	| logic_initializer AND logic_initializer {
+		
+	}
+	| logic_initializer OR logic_initializer {
+		
+	}
 	| LB count_expr RB
-	| pre_one_term_op logic_initializer
-	| both_one_term_op ID { 
-			char temp[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "decl"};
-			int targetIndex = lookup_symbol($2);
-			if(targetIndex == -1)
-			{
-				// semantic error
-				hasError = 1;
-				error_type = strdup("Undeclared variable");
-				error_target = strdup($2);
-			}
-			else
-			{
-				
-			} 
-		}
-	| ID both_one_term_op { 
+	| NOT logic_initializer
+	| ID INC { 
 			char temp[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "decl"};
 			int targetIndex = lookup_symbol($1);
 			if(targetIndex == -1)
@@ -1051,40 +1088,21 @@ count_expr  //need to complete it
 				
 			} 
 		}
-;
-
-two_term_op
-	: ADD
-	| SUB
-	| MUL
-	| DIV
-	| MOD
-	| MT
-	| LT
-	| MTE
-	| LTE
-	| EQ
-	| NE
-	| two_term_op_logic
-;
-
-two_term_op_logic
-	: AND
-	| OR
-;
-
-/*one_term_op
-	: pre_one_term_op
-	| both_one_term_op
-;*/
-
-pre_one_term_op
-	: NOT
-;
-
-both_one_term_op
-	: INC
-	| DEC
+	| ID DEC { 
+			char temp[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "decl"};
+			int targetIndex = lookup_symbol($1);
+			if(targetIndex == -1)
+			{
+				// semantic error
+				hasError = 1;
+				error_type = strdup("Undeclared variable");
+				error_target = strdup($1);
+			}
+			else
+			{
+				
+			} 
+		}
 ;
 
 function_define
@@ -1263,7 +1281,7 @@ asgn_stat
 				
 			} 
 		}
-	| ID both_one_term_op { 
+	| ID INC { 
 			char temp[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "decl"};
 			int targetIndex = lookup_symbol($1);
 			if(targetIndex == -1)
@@ -1278,15 +1296,15 @@ asgn_stat
 				
 			} 
 		}
-	| both_one_term_op ID { 
+	| ID DEC { 
 			char temp[16][16] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "decl"};
-			int targetIndex = lookup_symbol($2);
+			int targetIndex = lookup_symbol($1);
 			if(targetIndex == -1)
 			{
 				// semantic error
 				hasError = 1;
 				error_type = strdup("Undeclared variable");
-				error_target = strdup($2);
+				error_target = strdup($1);
 			}
 			else
 			{

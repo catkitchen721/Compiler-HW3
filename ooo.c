@@ -12,7 +12,7 @@ void add(int a, int b)
 	int c = 0.3;
 	bool isDddd = false;
 	string thisString = "Hello!";
-	c = a + b;
+	c = a + b * b > c + b < a == b;
 	return;
 }
 
